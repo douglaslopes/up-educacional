@@ -105,7 +105,7 @@ const Contact = () => {
             
             <h3 className="text-xl font-bold text-indigo-700 mt-8">Google Maps</h3>
             <div className="w-full h-64 bg-gray-200 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center text-gray-500">
-                {/* Embed Placeholder */}
+                {/* Embed com o endereço correto */}
                 <iframe 
                   width="100%" 
                   height="100%" 
@@ -113,7 +113,7 @@ const Contact = () => {
                   scrolling="no" 
                   marginHeight={0} 
                   marginWidth={0} 
-                  src="https://maps.google.com/maps?width=100%25&amp;height=600&amp;hl=en&amp;q=1%20Grafton%20Street,%20Dublin,%20Ireland+(Instituto%20UP)&amp;t=&amp;z=14&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"
+                  src="https://maps.google.com/maps?q=Rua%20Albert%20Einstein%2C%20211%20-%20Centro&t=&z=15&ie=UTF8&iwloc=&output=embed"
                   title="Google Maps"
                 ></iframe>
             </div>
