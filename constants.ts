@@ -77,7 +77,7 @@ export const INITIAL_CONTENT: SiteContent = {
     ]
   },
   contact: {
-    address: 'Rua Albert Einstein, 123, Bairro Centro (Próximo ao Cemitério da Paixão)',
+    address: 'Rua Albert Einstein, 211, Bairro Centro (Próximo ao Cemitério da Paixão)',
     whatsappLabel: 'Falar com a Equipe',
     whatsappNumber: '5511976762776'
   },
@@ -157,4 +157,5 @@ export const INITIAL_ADMIN_CONFIG: AdminConfig = {
   password: 'admin123' // Senha padrão inicial
 };
 
-export const GOOGLE_MAPS_LINK = "https://goo.gl/maps/placeholder";
+// Link atualizado para o endereço correto no Google Maps
+export const GOOGLE_MAPS_LINK = "https://www.google.com/maps/search/?api=1&query=Rua+Albert+Einstein,+211+-+Centro,+Franco+da+Rocha";
