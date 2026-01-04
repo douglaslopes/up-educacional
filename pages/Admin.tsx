@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useContent } from '../context/ContentContext';
 import { Teacher, Student, AdminConfig } from '../types';
-import { Lock, LogOut, Plus, Trash2, Save, X, ArrowLeft, Layout, Users, Calendar, DollarSign, Clock, FileText, Activity, Settings, Search, Filter } from 'lucide-react';
+import { Lock, LogOut, Plus, Trash2, Save, X, ArrowLeft, Layout, Users, Calendar, DollarSign, Clock, FileText, Activity, Settings, Search, Filter, Printer } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ImageUpload from '../components/ImageUpload';
 
@@ -56,6 +56,130 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
   );
 };
 
+// Componente de Contrato para Impressão
+const PrintableContract = ({ student, onClose }: { student: Student, onClose: () => void }) => {
+    const handlePrint = () => {
+        window.print();
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center overflow-y-auto print:bg-white print:static print:block">
+            {/* Styles specifically for print mode */}
+            <style>{`
+                @media print {
+                    body > *:not(#print-modal) { display: none !important; }
+                    #print-modal { 
+                        display: block !important; 
+                        position: absolute; 
+                        top: 0; 
+                        left: 0; 
+                        width: 100%; 
+                        margin: 0; 
+                        padding: 0;
+                        background: white;
+                        height: auto;
+                        overflow: visible;
+                    }
+                    .no-print { display: none !important; }
+                    /* Reset scrollbar styles for print */
+                    ::-webkit-scrollbar { display: none; }
+                }
+            `}</style>
+
+            <div id="print-modal" className="bg-white w-full max-w-4xl min-h-[90vh] md:h-auto md:my-8 p-8 md:p-12 shadow-2xl rounded-lg relative font-serif text-gray-900 leading-relaxed">
+                {/* Actions (Hidden on Print) */}
+                <div className="no-print absolute top-4 right-4 flex gap-2">
+                    <button onClick={handlePrint} className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-indigo-700">
+                        <Printer size={18} /> Imprimir / Salvar PDF
+                    </button>
+                    <button onClick={onClose} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold hover:bg-gray-300">
+                        Fechar
+                    </button>
+                </div>
+
+                {/* Document Content */}
+                <div className="max-w-3xl mx-auto border-4 border-double border-gray-800 p-8">
+                    {/* Header */}
+                    <div className="text-center border-b-2 border-gray-800 pb-6 mb-8">
+                        <h1 className="text-3xl font-bold uppercase tracking-wide">Instituto Educacional UP</h1>
+                        <p className="text-sm text-gray-600 mt-2">Rua Albert Einstein, 211 - Centro - Franco da Rocha | (11) 97676-2776</p>
+                    </div>
+
+                    <h2 className="text-xl font-bold text-center uppercase mb-8 decoration-gray-400 underline underline-offset-4">Ficha de Matrícula e Contrato de Prestação de Serviços</h2>
+
+                    {/* Section 1: Aluno */}
+                    <div className="mb-6">
+                        <h3 className="font-bold uppercase text-sm border-b border-gray-400 mb-2">1. Dados do Aluno</h3>
+                        <div className="grid grid-cols-4 gap-4 text-sm">
+                            <div className="col-span-3"><span className="font-bold">Nome:</span> {student.name}</div>
+                            <div className="col-span-1"><span className="font-bold">Nasc:</span> {student.birthDate ? new Date(student.birthDate).toLocaleDateString('pt-BR') : '___/___/___'}</div>
+                            <div className="col-span-2"><span className="font-bold">Série/Ano:</span> {student.grade}</div>
+                            <div className="col-span-2"><span className="font-bold">Matrícula:</span> {new Date(student.enrollmentDate).toLocaleDateString('pt-BR')}</div>
+                        </div>
+                    </div>
+
+                    {/* Section 2: Responsável */}
+                    <div className="mb-6">
+                        <h3 className="font-bold uppercase text-sm border-b border-gray-400 mb-2">2. Dados do Responsável Financeiro</h3>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div><span className="font-bold">Nome:</span> {student.parentName || '__________________________________'}</div>
+                            <div><span className="font-bold">Telefone/WhatsApp:</span> {student.parentPhone || '__________________'}</div>
+                        </div>
+                    </div>
+
+                    {/* Section 3: Objeto e Valores */}
+                    <div className="mb-6">
+                        <h3 className="font-bold uppercase text-sm border-b border-gray-400 mb-2">3. Do Objeto e Valores</h3>
+                        <p className="text-justify text-sm mb-2">
+                            O objeto deste contrato é a prestação de serviços educacionais de reforço/acompanhamento escolar.
+                        </p>
+                        <div className="bg-gray-50 p-4 border border-gray-200 text-sm">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><span className="font-bold">Carga Horária Mensal:</span> {student.contractedHours} horas</div>
+                                <div><span className="font-bold">Valor Mensal:</span> R$ {student.monthlyFee}</div>
+                                <div><span className="font-bold">Dia de Vencimento:</span> Todo dia {student.paymentDueDay || '___'}</div>
+                                <div><span className="font-bold">Vigência:</span> Até Dezembro/{new Date().getFullYear()}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section 4: Pedagógico */}
+                    <div className="mb-6">
+                        <h3 className="font-bold uppercase text-sm border-b border-gray-400 mb-2">4. Informações Pedagógicas/Saúde</h3>
+                        <div className="text-sm">
+                            <p><span className="font-bold">Necessidades Especiais/Laudo:</span> {student.hasDisability ? `Sim - ${student.disabilityDetail}` : 'Não declarado'}</p>
+                            <p className="mt-2"><span className="font-bold">Objetivo/Observações:</span> {student.notes || 'Sem observações adicionais.'}</p>
+                        </div>
+                    </div>
+
+                    {/* Legal Text */}
+                    <div className="text-xs text-justify text-gray-500 mb-12 leading-tight">
+                        <p>
+                            O não comparecimento do aluno às aulas não isenta o pagamento da mensalidade. Reposições serão avaliadas conforme disponibilidade de agenda e mediante aviso prévio de 24 horas. O atraso no pagamento superior a 30 dias implicará em multa de 2% e juros de mora de 1% ao mês. Este contrato pode ser rescindido por qualquer uma das partes mediante aviso prévio de 30 dias por escrito.
+                        </p>
+                    </div>
+
+                    {/* Signatures */}
+                    <div className="grid grid-cols-2 gap-16 mt-16 pt-8">
+                        <div className="text-center border-t border-gray-800 pt-2">
+                            <p className="font-bold text-sm">Instituto Educacional UP</p>
+                            <p className="text-xs">CONTRATADA</p>
+                        </div>
+                        <div className="text-center border-t border-gray-800 pt-2">
+                            <p className="font-bold text-sm">{student.parentName || 'Responsável'}</p>
+                            <p className="text-xs">CONTRATANTE (Assinatura)</p>
+                        </div>
+                    </div>
+
+                    <div className="text-center text-xs mt-8">
+                        Franco da Rocha, {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}.
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // Componente de Configurações Extraído
 const SettingsTab = ({ adminConfig, updateAdminConfig }: { adminConfig: AdminConfig, updateAdminConfig: (c: AdminConfig) => void }) => {
     const [newPassword, setNewPassword] = useState(adminConfig.password);
@@ -108,6 +232,7 @@ const Admin = () => {
   // States para filtro de alunos
   const [studentSearch, setStudentSearch] = useState('');
   const [studentStatusFilter, setStudentStatusFilter] = useState('Todos');
+  const [selectedStudentForPrint, setSelectedStudentForPrint] = useState<Student | null>(null);
 
   const { 
     content, updateContent, 
@@ -498,11 +623,15 @@ const Admin = () => {
         
         updateStudents([...students, { 
             id: Date.now().toString(), 
-            name: '', // Nome vazio para focar e digitar
+            name: '', 
+            parentName: '',
+            parentPhone: '',
+            birthDate: '',
             grade: '', 
             status: 'Ativo', 
             schedule: [], 
             paymentStatus: 'Em dia', 
+            paymentDueDay: '10',
             monthlyFee: '0,00', 
             enrollmentDate: new Date().toISOString().split('T')[0],
             hasDisability: false, 
@@ -580,15 +709,25 @@ const Admin = () => {
                     <div key={s.id} className="bg-white rounded-xl border shadow-sm p-6 hover:shadow-md transition">
                         {/* Header Row */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b pb-4">
-                            <div className="flex-1 w-full">
-                                <label className={labelStyle}>Nome do Aluno</label>
-                                <input 
-                                    type="text" 
-                                    value={s.name} 
-                                    onChange={(e) => updateStudents(students.map(st => st.id === s.id ? {...st, name: e.target.value} : st))} 
-                                    className="font-bold text-lg bg-transparent border-b border-dashed border-gray-300 w-full focus:ring-0 focus:border-indigo-500 p-0 pb-1" 
-                                    placeholder="Nome Completo" 
-                                />
+                            <div className="flex-1 w-full flex items-center gap-4">
+                                <div className="flex-1">
+                                    <label className={labelStyle}>Nome do Aluno</label>
+                                    <input 
+                                        type="text" 
+                                        value={s.name} 
+                                        onChange={(e) => updateStudents(students.map(st => st.id === s.id ? {...st, name: e.target.value} : st))} 
+                                        className="font-bold text-lg bg-transparent border-b border-dashed border-gray-300 w-full focus:ring-0 focus:border-indigo-500 p-0 pb-1" 
+                                        placeholder="Nome Completo" 
+                                    />
+                                </div>
+                                {/* Print Button */}
+                                <button 
+                                    onClick={() => setSelectedStudentForPrint(s)}
+                                    className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 p-2 rounded-lg"
+                                    title="Imprimir Contrato/Ficha"
+                                >
+                                    <Printer size={20} />
+                                </button>
                             </div>
                             <div className="flex gap-4 w-full md:w-auto">
                                 <div>
@@ -610,8 +749,24 @@ const Admin = () => {
                             </div>
                         </div>
 
+                        {/* Dados Pessoais / Responsável */}
+                        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                             <div className="md:col-span-1">
+                                 <label className={labelStyle}>Data Nascimento</label>
+                                 <input type="date" value={s.birthDate || ''} onChange={(e) => updateStudents(students.map(st => st.id === s.id ? {...st, birthDate: e.target.value} : st))} className={smallInputStyle + " w-full"} />
+                             </div>
+                             <div className="md:col-span-1">
+                                 <label className={labelStyle}>Nome do Responsável</label>
+                                 <input type="text" placeholder="Nome do Pai/Mãe" value={s.parentName || ''} onChange={(e) => updateStudents(students.map(st => st.id === s.id ? {...st, parentName: e.target.value} : st))} className={smallInputStyle + " w-full"} />
+                             </div>
+                             <div className="md:col-span-1">
+                                 <label className={labelStyle}>Telefone/WhatsApp</label>
+                                 <input type="text" placeholder="(11) 99999-9999" value={s.parentPhone || ''} onChange={(e) => updateStudents(students.map(st => st.id === s.id ? {...st, parentPhone: e.target.value} : st))} className={smallInputStyle + " w-full"} />
+                             </div>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Column 1: Academic & Personal */}
+                            {/* Column 1: Academic */}
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-indigo-700 font-bold border-b pb-1 mb-2">
                                     <FileText size={16} /> Dados Acadêmicos
@@ -624,7 +779,7 @@ const Admin = () => {
                                     <label className={labelStyle}>Data de Matrícula</label>
                                     <input type="date" value={s.enrollmentDate} onChange={(e) => updateStudents(students.map(st => st.id === s.id ? {...st, enrollmentDate: e.target.value} : st))} className={smallInputStyle + " w-full"} />
                                 </div>
-                                <div className="bg-gray-50 p-3 rounded-lg border">
+                                <div className="bg-white p-3 rounded-lg border">
                                     <div className="flex items-center gap-2 mb-2">
                                         <input 
                                             type="checkbox" 
@@ -651,14 +806,26 @@ const Admin = () => {
                                 <div className="flex items-center gap-2 text-green-700 font-bold border-b pb-1 mb-2">
                                     <DollarSign size={16} /> Financeiro
                                 </div>
-                                <div>
-                                    <label className={labelStyle}>Valor da Mensalidade (R$)</label>
-                                    <input 
-                                        type="text" 
-                                        value={s.monthlyFee} 
-                                        onChange={(e) => updateStudents(students.map(st => st.id === s.id ? {...st, monthlyFee: e.target.value} : st))} 
-                                        className={smallInputStyle + " w-full font-mono font-bold text-gray-700"} 
-                                    />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label className={labelStyle}>Mensalidade (R$)</label>
+                                        <input 
+                                            type="text" 
+                                            value={s.monthlyFee} 
+                                            onChange={(e) => updateStudents(students.map(st => st.id === s.id ? {...st, monthlyFee: e.target.value} : st))} 
+                                            className={smallInputStyle + " w-full font-mono font-bold text-gray-700"} 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelStyle}>Vencimento (Dia)</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Ex: 10"
+                                            value={s.paymentDueDay || ''} 
+                                            onChange={(e) => updateStudents(students.map(st => st.id === s.id ? {...st, paymentDueDay: e.target.value} : st))} 
+                                            className={smallInputStyle + " w-full font-mono font-bold text-gray-700"} 
+                                        />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className={labelStyle}>Status Pagamento (Mês Atual)</label>
@@ -779,6 +946,14 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-2 md:p-6">
+        {/* Render Contract Modal if student selected */}
+        {selectedStudentForPrint && (
+            <PrintableContract 
+                student={selectedStudentForPrint} 
+                onClose={() => setSelectedStudentForPrint(null)} 
+            />
+        )}
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
