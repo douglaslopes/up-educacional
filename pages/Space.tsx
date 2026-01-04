@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useContent } from '../context/ContentContext';
+import { X, ZoomIn } from 'lucide-react';
 
 const Space = () => {
   const { content } = useContent();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   return (
     <div className="space-y-12 animate-fade-in p-4 md:p-8">
@@ -16,14 +18,41 @@ const Space = () => {
       {/* Gallery Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {content.space.gallery.map((item, index) => (
-           <div key={item.id} className={`group relative overflow-hidden rounded-2xl h-64 shadow-md ${index === 1 || index === 2 ? 'lg:col-span-2' : ''}`}>
-               <img src={item.url} alt={item.caption} className="w-full h-full object-cover transition duration-500 group-hover:scale-110"/>
-               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
-                   <span className="text-white font-bold text-lg flex items-center gap-2">{item.caption}</span>
+           <div 
+             key={item.id} 
+             className={`group relative overflow-hidden rounded-2xl h-64 shadow-md cursor-pointer ${index === 1 || index === 2 ? 'lg:col-span-2' : ''}`}
+             onClick={() => setSelectedImage(item.url)}
+           >
+               {/* Alterado para object-cover mas com posição centrada, ou pode usar object-contain com bg-black se preferir não cortar nada na thumb */}
+               <img src={item.url} alt={item.caption} className="w-full h-full object-cover transition duration-500 group-hover:scale-105"/>
+               
+               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
+                   <div className="text-white text-center">
+                       <ZoomIn size={32} className="mx-auto mb-2 opacity-80"/>
+                       <span className="font-bold text-lg drop-shadow-md">{item.caption}</span>
+                   </div>
                </div>
            </div>
         ))}
       </div>
+
+      {/* Lightbox Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
+            <button 
+                className="absolute top-4 right-4 text-white hover:text-gray-300 transition"
+                onClick={() => setSelectedImage(null)}
+            >
+                <X size={40} />
+            </button>
+            <img 
+                src={selectedImage} 
+                alt="Zoom" 
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                onClick={(e) => e.stopPropagation()} // Prevent close when clicking image
+            />
+        </div>
+      )}
 
       {/* Didactics Section */}
       <div className="bg-white rounded-3xl p-8 shadow-lg">
