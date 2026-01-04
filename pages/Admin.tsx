@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useContent } from '../context/ContentContext';
-import { Teacher, Student } from '../types';
+import { Teacher, Student, AdminConfig } from '../types';
 import { Lock, LogOut, Plus, Trash2, Save, X, ArrowLeft, Layout, Users, Calendar, DollarSign, Clock, FileText, Activity, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ImageUpload from '../components/ImageUpload';
@@ -54,6 +54,51 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
       </div>
     </div>
   );
+};
+
+// Componente de Configurações Extraído para evitar crash
+const SettingsTab = ({ adminConfig, updateAdminConfig }: { adminConfig: AdminConfig, updateAdminConfig: (c: AdminConfig) => void }) => {
+    const [newPassword, setNewPassword] = useState(adminConfig.password);
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    const handleSavePassword = () => {
+        updateAdminConfig({ ...adminConfig, password: newPassword });
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+    };
+
+    return (
+        <div className="max-w-xl mx-auto space-y-8">
+            <div className="bg-gray-50 p-6 rounded-xl border">
+                <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2">
+                    <Lock size={18} /> Segurança
+                </h3>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Alterar Senha do Admin</label>
+                        <input 
+                            type="text" 
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="w-full p-2 border rounded bg-white text-gray-900 placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-2">Esta senha é usada para acessar este painel. Escolha algo seguro.</p>
+                    </div>
+                    <button 
+                        onClick={handleSavePassword}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition w-full md:w-auto"
+                    >
+                        Atualizar Senha
+                    </button>
+                    {showSuccess && (
+                        <div className="p-3 bg-green-100 text-green-800 rounded-lg text-sm text-center font-bold animate-pulse">
+                            Senha atualizada com sucesso!
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const Admin = () => {
@@ -168,11 +213,11 @@ const Admin = () => {
               </div>
               <div className="space-y-4">
                   {teachers.map((t, idx) => (
-                      <div key={t.id} className="flex gap-4 items-start border-b pb-4">
-                           {/* Teacher Image Upload - Compact Version */}
-                           <div className="w-20">
+                      <div key={t.id} className="flex flex-col md:flex-row gap-4 items-start border-b pb-4">
+                           {/* Corrigido: Removido w-20 para dar espaço ao botão */}
+                           <div className="w-full md:w-32 shrink-0">
                                 <ImageUpload 
-                                    label=""
+                                    label="Foto"
                                     currentImage={t.image}
                                     onUpload={(url) => {
                                         const nt = [...teachers]; nt[idx].image = url; updateTeachers(nt);
@@ -181,18 +226,18 @@ const Admin = () => {
                                 />
                            </div>
                           
-                          <div className="flex-1 grid grid-cols-2 gap-2">
+                          <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-2">
                               <input type="text" value={t.name} onChange={(e) => {
                                   const nt = [...teachers]; nt[idx].name = e.target.value; updateTeachers(nt);
-                              }} className="p-1 border rounded text-sm bg-white text-gray-900" placeholder="Nome" />
+                              }} className="p-2 border rounded text-sm bg-white text-gray-900 w-full" placeholder="Nome" />
                                <input type="text" value={t.role} onChange={(e) => {
                                   const nt = [...teachers]; nt[idx].role = e.target.value; updateTeachers(nt);
-                              }} className="p-1 border rounded text-sm bg-white text-gray-900" placeholder="Cargo" />
+                              }} className="p-2 border rounded text-sm bg-white text-gray-900 w-full" placeholder="Cargo" />
                                <input type="text" value={t.specialty} onChange={(e) => {
                                   const nt = [...teachers]; nt[idx].specialty = e.target.value; updateTeachers(nt);
-                              }} className="p-1 border rounded text-sm col-span-2 bg-white text-gray-900" placeholder="Especialidade" />
+                              }} className="p-2 border rounded text-sm md:col-span-2 bg-white text-gray-900 w-full" placeholder="Especialidade" />
                           </div>
-                          <button onClick={() => updateTeachers(teachers.filter(x => x.id !== t.id))} className="text-red-500"><Trash2 size={16} /></button>
+                          <button onClick={() => updateTeachers(teachers.filter(x => x.id !== t.id))} className="text-red-500 self-end md:self-center"><Trash2 size={16} /></button>
                       </div>
                   ))}
               </div>
@@ -248,7 +293,7 @@ const Admin = () => {
                 {content.space.gallery.map((item, idx) => (
                     <div key={item.id} className="flex gap-4 items-start border-b pb-4 last:border-0">
                          {/* Gallery Image Upload */}
-                         <div className="w-24">
+                         <div className="w-24 shrink-0">
                             <ImageUpload 
                                 label=""
                                 currentImage={item.url}
@@ -623,50 +668,6 @@ const Admin = () => {
      </div>
    );
 
-   const renderSettings = () => {
-    const [newPassword, setNewPassword] = useState(adminConfig.password);
-    const [showSuccess, setShowSuccess] = useState(false);
-
-    const handleSavePassword = () => {
-        updateAdminConfig({ ...adminConfig, password: newPassword });
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
-    };
-
-    return (
-        <div className="max-w-xl mx-auto space-y-8">
-            <div className="bg-gray-50 p-6 rounded-xl border">
-                <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2">
-                    <Lock size={18} /> Segurança
-                </h3>
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Alterar Senha do Admin</label>
-                        <input 
-                            type="text" 
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            className={inputStyle}
-                        />
-                        <p className="text-xs text-gray-500 mt-2">Esta senha é usada para acessar este painel. Escolha algo seguro.</p>
-                    </div>
-                    <button 
-                        onClick={handleSavePassword}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition w-full md:w-auto"
-                    >
-                        Atualizar Senha
-                    </button>
-                    {showSuccess && (
-                        <div className="p-3 bg-green-100 text-green-800 rounded-lg text-sm text-center font-bold animate-pulse">
-                            Senha atualizada com sucesso!
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-   }
-
   if (!isLoggedIn) return <Login onLogin={() => setIsLoggedIn(true)} />;
 
   return (
@@ -781,7 +782,8 @@ const Admin = () => {
                     <div className="animate-fade-in">
                         {activeTab === 'students' && renderStudents()}
                         {activeTab === 'schedule' && renderSchedule()}
-                        {activeTab === 'settings' && renderSettings()}
+                        {/* Renderizando o componente extraído em vez de chamar uma função interna */}
+                        {activeTab === 'settings' && <SettingsTab adminConfig={adminConfig} updateAdminConfig={updateAdminConfig} />}
                         {activeTab === 'home' && renderHomeEditor()}
                         {activeTab === 'about' && renderAboutEditor()}
                         {activeTab === 'specialties' && renderSpecialtiesEditor()}
