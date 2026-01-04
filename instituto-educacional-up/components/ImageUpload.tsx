@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 interface ImageUploadProps {
@@ -21,16 +21,18 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ currentImage, onUpload, label
 
       setIsUploading(true);
 
-      // 1. Gera um nome único para o arquivo para evitar conflitos
-      // Ex: 167889900-nome-do-arquivo.jpg
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${fileName}`;
-
+      // 1. Gera um nome único para o arquivo
+      // Limpa caracteres especiais do nome do arquivo para evitar erros de URL
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+      const fileName = `${Date.now()}-${cleanFileName}`;
+      
       // 2. Faz o upload para o bucket 'images'
       const { error: uploadError } = await supabase.storage
         .from('images')
-        .upload(filePath, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         throw uploadError;
@@ -39,7 +41,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ currentImage, onUpload, label
       // 3. Pega a URL pública
       const { data } = supabase.storage
         .from('images')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       // 4. Retorna a URL para o componente pai
       onUpload(data.publicUrl);
@@ -78,28 +80,17 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ currentImage, onUpload, label
 
         {/* Action Area */}
         <div className="flex-1 space-y-2">
-            <div className="relative">
+            <label className={`flex items-center justify-center gap-2 w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <input
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
                     className="hidden"
-                    id={`file-upload-${label}-${Math.random()}`} // ID único randomico
                     disabled={isUploading}
                 />
-                <label
-                    htmlFor={`file-upload-${label}`}
-                    // Hack to make the label trigger the specific input sibling
-                    onClick={(e) => {
-                       const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                       input.click();
-                    }}
-                    className={`flex items-center justify-center gap-2 w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                    <Upload size={16} />
-                    {isUploading ? 'Enviando...' : 'Escolher Arquivo'}
-                </label>
-            </div>
+                <Upload size={16} />
+                {isUploading ? 'Enviando...' : 'Escolher Arquivo'}
+            </label>
             
             <p className="text-xs text-gray-500">
                 Formatos: JPG, PNG, WEBP.
