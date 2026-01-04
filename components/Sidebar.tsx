@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { Menu, X, Home, Users, BookOpen, MapPin, Calendar, Rocket, Lock } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 
@@ -46,8 +46,12 @@ const Sidebar = () => {
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Logo Area */}
-          <div className="p-6 bg-indigo-600 text-white flex flex-col items-center justify-center">
+          {/* Logo Area - Agora é um Link */}
+          <Link 
+            to="/" 
+            onClick={closeMenu}
+            className="p-6 bg-indigo-600 text-white flex flex-col items-center justify-center hover:bg-indigo-700 transition-colors cursor-pointer"
+          >
              {content.home.logoUrl ? (
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-2 p-2 overflow-hidden shadow-md">
                     <img 
@@ -63,7 +67,7 @@ const Sidebar = () => {
              )}
             <h1 className="text-xl font-bold text-center leading-tight">Instituto<br/>Educacional UP</h1>
             <p className="text-xs text-indigo-200 mt-1">Descomplicando a Aprendizagem</p>
-          </div>
+          </Link>
 
           {/* Navigation Links */}
           <nav className="flex-1 overflow-y-auto py-4">
