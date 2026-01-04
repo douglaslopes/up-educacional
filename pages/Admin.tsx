@@ -63,116 +63,134 @@ const PrintableContract = ({ student, onClose }: { student: Student, onClose: ()
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center overflow-y-auto print:bg-white print:static print:block">
-            {/* Styles specifically for print mode */}
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center overflow-y-auto pt-10 pb-10 print:p-0 print:bg-white print:static print:block">
+            {/* Styles specifically for print mode - CORRIGIDO */}
             <style>{`
                 @media print {
-                    body > *:not(#print-modal) { display: none !important; }
+                    /* Oculta tudo na página por padrão usando visibility para não quebrar o React Root */
+                    body {
+                        visibility: hidden;
+                        background: white;
+                    }
+                    
+                    /* Torna visível apenas o modal e seus filhos */
+                    #print-modal, #print-modal * {
+                        visibility: visible;
+                    }
+
+                    /* Posiciona o modal no topo absoluto para impressão */
                     #print-modal { 
-                        display: block !important; 
                         position: absolute; 
-                        top: 0; 
                         left: 0; 
+                        top: 0; 
                         width: 100%; 
                         margin: 0; 
-                        padding: 0;
-                        background: white;
-                        height: auto;
-                        overflow: visible;
+                        padding: 20px;
+                        border: none;
+                        box-shadow: none;
+                        min-height: auto;
                     }
+                    
+                    /* Oculta botões de ação na impressão */
                     .no-print { display: none !important; }
-                    /* Reset scrollbar styles for print */
+                    
+                    /* Remove barras de rolagem */
                     ::-webkit-scrollbar { display: none; }
                 }
             `}</style>
 
-            <div id="print-modal" className="bg-white w-full max-w-4xl min-h-[90vh] md:h-auto md:my-8 p-8 md:p-12 shadow-2xl rounded-lg relative font-serif text-gray-900 leading-relaxed">
+            <div id="print-modal" className="bg-white w-full max-w-[210mm] min-h-[297mm] p-8 md:p-12 shadow-2xl rounded-sm relative font-serif text-gray-900 leading-relaxed mx-auto">
                 {/* Actions (Hidden on Print) */}
-                <div className="no-print absolute top-4 right-4 flex gap-2">
-                    <button onClick={handlePrint} className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-indigo-700">
+                <div className="no-print absolute top-0 right-0 transform -translate-y-full md:translate-y-0 md:top-4 md:right-4 flex gap-2 mb-2 md:mb-0">
+                    <button onClick={handlePrint} className="bg-indigo-600 text-white px-4 py-2 rounded shadow font-bold flex items-center gap-2 hover:bg-indigo-700">
                         <Printer size={18} /> Imprimir / Salvar PDF
                     </button>
-                    <button onClick={onClose} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold hover:bg-gray-300">
+                    <button onClick={onClose} className="bg-gray-200 text-gray-700 px-4 py-2 rounded shadow font-bold hover:bg-gray-300">
                         Fechar
                     </button>
                 </div>
 
                 {/* Document Content */}
-                <div className="max-w-3xl mx-auto border-4 border-double border-gray-800 p-8">
-                    {/* Header */}
-                    <div className="text-center border-b-2 border-gray-800 pb-6 mb-8">
-                        <h1 className="text-3xl font-bold uppercase tracking-wide">Instituto Educacional UP</h1>
-                        <p className="text-sm text-gray-600 mt-2">Rua Albert Einstein, 211 - Centro - Franco da Rocha | (11) 97676-2776</p>
-                    </div>
-
-                    <h2 className="text-xl font-bold text-center uppercase mb-8 decoration-gray-400 underline underline-offset-4">Ficha de Matrícula e Contrato de Prestação de Serviços</h2>
-
-                    {/* Section 1: Aluno */}
-                    <div className="mb-6">
-                        <h3 className="font-bold uppercase text-sm border-b border-gray-400 mb-2">1. Dados do Aluno</h3>
-                        <div className="grid grid-cols-4 gap-4 text-sm">
-                            <div className="col-span-3"><span className="font-bold">Nome:</span> {student.name}</div>
-                            <div className="col-span-1"><span className="font-bold">Nasc:</span> {student.birthDate ? new Date(student.birthDate).toLocaleDateString('pt-BR') : '___/___/___'}</div>
-                            <div className="col-span-2"><span className="font-bold">Série/Ano:</span> {student.grade}</div>
-                            <div className="col-span-2"><span className="font-bold">Matrícula:</span> {new Date(student.enrollmentDate).toLocaleDateString('pt-BR')}</div>
+                <div className="h-full flex flex-col justify-between">
+                    <div>
+                        {/* Header */}
+                        <div className="text-center border-b-2 border-gray-800 pb-4 mb-6">
+                            <h1 className="text-2xl font-bold uppercase tracking-wide">Instituto Educacional UP</h1>
+                            <p className="text-sm text-gray-600 mt-1">Rua Albert Einstein, 211 - Centro - Franco da Rocha | (11) 97676-2776</p>
                         </div>
-                    </div>
 
-                    {/* Section 2: Responsável */}
-                    <div className="mb-6">
-                        <h3 className="font-bold uppercase text-sm border-b border-gray-400 mb-2">2. Dados do Responsável Financeiro</h3>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div><span className="font-bold">Nome:</span> {student.parentName || '__________________________________'}</div>
-                            <div><span className="font-bold">Telefone/WhatsApp:</span> {student.parentPhone || '__________________'}</div>
-                        </div>
-                    </div>
+                        <h2 className="text-lg font-bold text-center uppercase mb-6 decoration-gray-400 underline underline-offset-4">Ficha de Matrícula e Contrato</h2>
 
-                    {/* Section 3: Objeto e Valores */}
-                    <div className="mb-6">
-                        <h3 className="font-bold uppercase text-sm border-b border-gray-400 mb-2">3. Do Objeto e Valores</h3>
-                        <p className="text-justify text-sm mb-2">
-                            O objeto deste contrato é a prestação de serviços educacionais de reforço/acompanhamento escolar.
-                        </p>
-                        <div className="bg-gray-50 p-4 border border-gray-200 text-sm">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div><span className="font-bold">Carga Horária Mensal:</span> {student.contractedHours} horas</div>
-                                <div><span className="font-bold">Valor Mensal:</span> R$ {student.monthlyFee}</div>
-                                <div><span className="font-bold">Dia de Vencimento:</span> Todo dia {student.paymentDueDay || '___'}</div>
-                                <div><span className="font-bold">Vigência:</span> Até Dezembro/{new Date().getFullYear()}</div>
+                        {/* Section 1: Aluno */}
+                        <div className="mb-5">
+                            <h3 className="font-bold uppercase text-xs border-b border-gray-400 mb-2 bg-gray-100 p-1">1. Dados do Aluno</h3>
+                            <div className="grid grid-cols-4 gap-4 text-sm">
+                                <div className="col-span-3 border-b border-dotted border-gray-300 pb-1"><span className="font-bold">Nome:</span> {student.name}</div>
+                                <div className="col-span-1 border-b border-dotted border-gray-300 pb-1"><span className="font-bold">Nasc:</span> {student.birthDate ? new Date(student.birthDate).toLocaleDateString('pt-BR') : '___/___/___'}</div>
+                                <div className="col-span-2 border-b border-dotted border-gray-300 pb-1"><span className="font-bold">Série/Ano:</span> {student.grade}</div>
+                                <div className="col-span-2 border-b border-dotted border-gray-300 pb-1"><span className="font-bold">Matrícula:</span> {new Date(student.enrollmentDate).toLocaleDateString('pt-BR')}</div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Section 4: Pedagógico */}
-                    <div className="mb-6">
-                        <h3 className="font-bold uppercase text-sm border-b border-gray-400 mb-2">4. Informações Pedagógicas/Saúde</h3>
-                        <div className="text-sm">
-                            <p><span className="font-bold">Necessidades Especiais/Laudo:</span> {student.hasDisability ? `Sim - ${student.disabilityDetail}` : 'Não declarado'}</p>
-                            <p className="mt-2"><span className="font-bold">Objetivo/Observações:</span> {student.notes || 'Sem observações adicionais.'}</p>
+                        {/* Section 2: Responsável */}
+                        <div className="mb-5">
+                            <h3 className="font-bold uppercase text-xs border-b border-gray-400 mb-2 bg-gray-100 p-1">2. Dados do Responsável Financeiro</h3>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div className="border-b border-dotted border-gray-300 pb-1"><span className="font-bold">Nome:</span> {student.parentName || '__________________________________'}</div>
+                                <div className="border-b border-dotted border-gray-300 pb-1"><span className="font-bold">Tel/WhatsApp:</span> {student.parentPhone || '__________________'}</div>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Legal Text */}
-                    <div className="text-xs text-justify text-gray-500 mb-12 leading-tight">
-                        <p>
-                            O não comparecimento do aluno às aulas não isenta o pagamento da mensalidade. Reposições serão avaliadas conforme disponibilidade de agenda e mediante aviso prévio de 24 horas. O atraso no pagamento superior a 30 dias implicará em multa de 2% e juros de mora de 1% ao mês. Este contrato pode ser rescindido por qualquer uma das partes mediante aviso prévio de 30 dias por escrito.
-                        </p>
+                        {/* Section 3: Objeto e Valores */}
+                        <div className="mb-5">
+                            <h3 className="font-bold uppercase text-xs border-b border-gray-400 mb-2 bg-gray-100 p-1">3. Do Objeto e Valores</h3>
+                            <div className="bg-gray-50 p-3 border border-gray-200 text-sm">
+                                <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                                    <div><span className="font-bold">Carga Horária Mensal:</span> {student.contractedHours} horas</div>
+                                    <div><span className="font-bold">Valor Mensal:</span> R$ {student.monthlyFee}</div>
+                                    <div><span className="font-bold">Dia de Vencimento:</span> Todo dia {student.paymentDueDay || '___'}</div>
+                                    <div><span className="font-bold">Vigência:</span> Até Dezembro/{new Date().getFullYear()}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 4: Pedagógico */}
+                        <div className="mb-5">
+                            <h3 className="font-bold uppercase text-xs border-b border-gray-400 mb-2 bg-gray-100 p-1">4. Informações Pedagógicas/Saúde</h3>
+                            <div className="text-sm space-y-2">
+                                <p className="border-b border-dotted border-gray-300 pb-1"><span className="font-bold">Necessidades Especiais/Laudo:</span> {student.hasDisability ? `Sim - ${student.disabilityDetail}` : 'Não declarado'}</p>
+                                <p className="border-b border-dotted border-gray-300 pb-1"><span className="font-bold">Objetivo/Observações:</span> {student.notes || 'Sem observações adicionais.'}</p>
+                            </div>
+                        </div>
+
+                        {/* Legal Text */}
+                        <div className="text-[10px] text-justify text-gray-600 mb-8 leading-snug border p-2 rounded">
+                            <p>
+                                <strong>CLÁUSULA I:</strong> O não comparecimento do aluno às aulas não isenta o pagamento da mensalidade. 
+                                <strong> CLÁUSULA II:</strong> Reposições serão avaliadas conforme disponibilidade de agenda e mediante aviso prévio de 24 horas. 
+                                <strong> CLÁUSULA III:</strong> O atraso no pagamento superior a 30 dias implicará em multa de 2% e juros de mora de 1% ao mês. 
+                                <strong> CLÁUSULA IV:</strong> Este contrato pode ser rescindido por qualquer uma das partes mediante aviso prévio de 30 dias por escrito.
+                                <strong> CLÁUSULA V:</strong> O contratante autoriza o uso de imagem do aluno para fins de divulgação pedagógica nas redes sociais da escola (  ) Sim (  ) Não.
+                            </p>
+                        </div>
                     </div>
 
                     {/* Signatures */}
-                    <div className="grid grid-cols-2 gap-16 mt-16 pt-8">
-                        <div className="text-center border-t border-gray-800 pt-2">
-                            <p className="font-bold text-sm">Instituto Educacional UP</p>
-                            <p className="text-xs">CONTRATADA</p>
+                    <div>
+                        <div className="grid grid-cols-2 gap-12 pt-4">
+                            <div className="text-center border-t border-gray-800 pt-2">
+                                <p className="font-bold text-sm">Instituto Educacional UP</p>
+                                <p className="text-[10px] text-gray-500">CONTRATADA (CNPJ)</p>
+                            </div>
+                            <div className="text-center border-t border-gray-800 pt-2">
+                                <p className="font-bold text-sm">{student.parentName || 'Responsável Financeiro'}</p>
+                                <p className="text-[10px] text-gray-500">CONTRATANTE (CPF: _________________)</p>
+                            </div>
                         </div>
-                        <div className="text-center border-t border-gray-800 pt-2">
-                            <p className="font-bold text-sm">{student.parentName || 'Responsável'}</p>
-                            <p className="text-xs">CONTRATANTE (Assinatura)</p>
-                        </div>
-                    </div>
 
-                    <div className="text-center text-xs mt-8">
-                        Franco da Rocha, {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}.
+                        <div className="text-center text-xs mt-6 text-gray-400">
+                            Franco da Rocha, {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}.
+                        </div>
                     </div>
                 </div>
             </div>
