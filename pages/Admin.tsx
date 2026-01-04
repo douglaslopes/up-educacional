@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useContent } from '../context/ContentContext';
 import { Teacher, Student, AdminConfig } from '../types';
-import { Lock, LogOut, Plus, Trash2, Save, X, ArrowLeft, Layout, Users, Calendar, DollarSign, Clock, FileText, Activity, Settings } from 'lucide-react';
+import { Lock, LogOut, Plus, Trash2, Save, X, ArrowLeft, Layout, Users, Calendar, DollarSign, Clock, FileText, Activity, Settings, Search, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ImageUpload from '../components/ImageUpload';
 
@@ -56,7 +56,7 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
   );
 };
 
-// Componente de Configurações Extraído para evitar crash
+// Componente de Configurações Extraído
 const SettingsTab = ({ adminConfig, updateAdminConfig }: { adminConfig: AdminConfig, updateAdminConfig: (c: AdminConfig) => void }) => {
     const [newPassword, setNewPassword] = useState(adminConfig.password);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -104,6 +104,11 @@ const SettingsTab = ({ adminConfig, updateAdminConfig }: { adminConfig: AdminCon
 const Admin = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('students');
+  
+  // States para filtro de alunos
+  const [studentSearch, setStudentSearch] = useState('');
+  const [studentStatusFilter, setStudentStatusFilter] = useState('Todos');
+
   const { 
     content, updateContent, 
     teachers, updateTeachers, 
@@ -214,7 +219,6 @@ const Admin = () => {
               <div className="space-y-4">
                   {teachers.map((t, idx) => (
                       <div key={t.id} className="flex flex-col md:flex-row gap-4 items-start border-b pb-4">
-                           {/* Corrigido: Removido w-20 para dar espaço ao botão */}
                            <div className="w-full md:w-32 shrink-0">
                                 <ImageUpload 
                                     label="Foto"
@@ -269,6 +273,48 @@ const Admin = () => {
                      />
                  </div>
              ))}
+         </div>
+
+         {/* Nova seção para Equipe Multidisciplinar */}
+         <div className="bg-gray-50 p-6 rounded-xl border">
+             <div className="flex justify-between items-center mb-4">
+                 <h3 className="font-bold text-gray-700">Equipe Multidisciplinar (Extras)</h3>
+                 <button 
+                    onClick={() => {
+                        const newExtras = [...content.specialties.extra, 'Nova Especialidade'];
+                        updateNestedContent('specialties', 'extra', newExtras);
+                    }} 
+                    className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition"
+                 >
+                    <Plus size={14} className="inline mr-1"/> Adicionar
+                 </button>
+             </div>
+             <div className="space-y-2">
+                 {content.specialties.extra.map((extra, idx) => (
+                     <div key={idx} className="flex gap-2 items-center">
+                         <input 
+                            type="text" 
+                            value={extra}
+                            onChange={(e) => {
+                                const newExtras = [...content.specialties.extra];
+                                newExtras[idx] = e.target.value;
+                                updateNestedContent('specialties', 'extra', newExtras);
+                            }}
+                            className="p-2 border rounded w-full text-sm bg-white text-gray-900"
+                         />
+                         <button 
+                            onClick={() => {
+                                const newExtras = content.specialties.extra.filter((_, i) => i !== idx);
+                                updateNestedContent('specialties', 'extra', newExtras);
+                            }}
+                            className="text-red-400 hover:text-red-600 p-2"
+                         >
+                             <Trash2 size={16} />
+                         </button>
+                     </div>
+                 ))}
+             </div>
+             <p className="text-xs text-gray-500 mt-2">Ex: Fonoaudiologia, Psicopedagogia, Psicanálise Infantil...</p>
          </div>
     </div>
   );
@@ -438,10 +484,39 @@ const Admin = () => {
         .filter(s => s.status === 'Ativo')
         .reduce((acc, curr) => acc + (parseFloat(curr.monthlyFee.replace('.','').replace(',','.')) || 0), 0);
 
+    // Filtro e Busca
+    const filteredStudents = students.filter(s => {
+        const matchesSearch = s.name.toLowerCase().includes(studentSearch.toLowerCase());
+        const matchesStatus = studentStatusFilter === 'Todos' || s.status === studentStatusFilter;
+        return matchesSearch && matchesStatus;
+    });
+
+    const createNewStudent = () => {
+        // Limpa a busca para que o novo aluno apareça imediatamente
+        setStudentSearch('');
+        setStudentStatusFilter('Todos');
+        
+        updateStudents([...students, { 
+            id: Date.now().toString(), 
+            name: '', // Nome vazio para focar e digitar
+            grade: '', 
+            status: 'Ativo', 
+            schedule: [], 
+            paymentStatus: 'Em dia', 
+            monthlyFee: '0,00', 
+            enrollmentDate: new Date().toISOString().split('T')[0],
+            hasDisability: false, 
+            disabilityDetail: '', 
+            contractedHours: 0, 
+            attendedHours: 0, 
+            notes: ''
+        }]);
+    };
+
     return (
       <div className="space-y-6">
            {/* Dashboard Summary */}
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                   <div className="text-blue-500 mb-1 font-bold text-xs uppercase">Alunos Ativos</div>
                   <div className="text-2xl font-bold text-blue-800">{activeStudents} <span className="text-sm font-normal text-gray-500">/ {totalStudents}</span></div>
@@ -455,11 +530,7 @@ const Admin = () => {
                   <div className="text-2xl font-bold text-red-800">{pendingPayments}</div>
               </div>
                <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-center justify-center cursor-pointer hover:bg-purple-100 transition"
-                    onClick={() => updateStudents([...students, { 
-                        id: Date.now().toString(), name: 'Novo Aluno', grade: '', status: 'Ativo', schedule: [], 
-                        paymentStatus: 'Em dia', monthlyFee: '0,00', enrollmentDate: new Date().toISOString().split('T')[0],
-                        hasDisability: false, disabilityDetail: '', contractedHours: 0, attendedHours: 0, notes: ''
-                    }])}
+                    onClick={createNewStudent}
                >
                   <div className="text-purple-600 font-bold flex items-center gap-2">
                       <Plus size={24} /> Novo Aluno
@@ -467,9 +538,45 @@ const Admin = () => {
               </div>
            </div>
 
+           {/* Barra de Busca e Filtro */}
+           <div className="bg-white p-4 rounded-xl border shadow-sm flex flex-col md:flex-row gap-4 items-center">
+               <div className="relative flex-1 w-full">
+                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                   <input 
+                        type="text" 
+                        placeholder="Buscar aluno por nome..." 
+                        value={studentSearch}
+                        onChange={(e) => setStudentSearch(e.target.value)}
+                        className="pl-10 w-full p-2 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-200 outline-none"
+                   />
+               </div>
+               <div className="flex items-center gap-2 w-full md:w-auto">
+                   <Filter size={18} className="text-gray-400" />
+                   <select 
+                        value={studentStatusFilter}
+                        onChange={(e) => setStudentStatusFilter(e.target.value)}
+                        className="p-2 border rounded-lg bg-gray-50 text-gray-700 outline-none w-full md:w-48"
+                   >
+                       <option value="Todos">Todos os Status</option>
+                       <option value="Ativo">Ativo (Matriculado)</option>
+                       <option value="Pendente">Pendente</option>
+                       <option value="Inativo">Inativo</option>
+                   </select>
+               </div>
+           </div>
+           
+           <div className="text-sm text-gray-500">
+               Mostrando {filteredStudents.length} de {students.length} alunos
+           </div>
+
             {/* Students List */}
             <div className="space-y-4">
-                {students.map(s => (
+                {filteredStudents.length === 0 ? (
+                    <div className="text-center py-12 text-gray-400">
+                        Nenhum aluno encontrado com estes filtros.
+                    </div>
+                ) : (
+                    filteredStudents.map(s => (
                     <div key={s.id} className="bg-white rounded-xl border shadow-sm p-6 hover:shadow-md transition">
                         {/* Header Row */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b pb-4">
@@ -625,7 +732,7 @@ const Admin = () => {
                             />
                         </div>
                     </div>
-                ))}
+                )))}
             </div>
       </div>
     );
