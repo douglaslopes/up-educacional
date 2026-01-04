@@ -9,12 +9,16 @@ export interface Teacher {
 export interface Student {
   id: string;
   name: string;
+  birthDate: string; // Novo
+  parentName: string; // Novo
+  parentPhone: string; // Novo
   grade: string;
   status: 'Ativo' | 'Inativo' | 'Pendente';
   schedule: string[];
-  // New Management Fields
+  // Management Fields
   enrollmentDate: string;
   paymentStatus: 'Em dia' | 'Pendente' | 'Atrasado';
+  paymentDueDay: string; // Novo: Dia do vencimento (ex: "10")
   monthlyFee: string;
   hasDisability: boolean;
   disabilityDetail: string;
